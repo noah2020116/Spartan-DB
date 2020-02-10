@@ -1,45 +1,54 @@
-const express = require('express'); // Express framework
-const app = express();
-const request = require('request')
-const options = {
-  url: 'http://api.github.com/repos/josh-daisey/Spartan-DB',
-  method: 'GET',
-  headers: { 'User-Agent': 'Mozilla/5.0' }
-}
+const sqlite3 = require('sqlite3');
+var express = require('express');
+var session = require('express-session');
+var bodyParser = require('body-parser');
+var path = require('path');
 
-let session = require('express-session');
-// Set up session with express
+const db = new sqlite3.Database('db/database.db');
+
+var app = express();
+
 app.use(session({
 	secret: 'secret',
 	resave: true,
 	saveUninitialized: true
 }));
-let path = require('path');
-
-const sqlite3 = require('sqlite3'); // Interfaces with sqlite3 database
-// const db = new sqlite3.Database('database/JSFdatabase.db');
-
-const bodyParser = require('body-parser'); // Parses data from http request bodies
-//S et up bodyParser with express
-app.use(bodyParser.urlencoded({
-	extended: true
-}));
+app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
 
-//Set up web folders
-app.use(express.static("public"));
-
-app.get("/github", function (req, res) {
-	request(options, function(request_err, request_res, request_body) {
-        if (request_err || request_res.statusCode != 200) {
-            res.send("Oops! There was a problem with the request module: <br>" + request_err);
-        } else {
-            res.status(200).send(request_body);
-        }
-    })
+app.get('/', function(request, response) {
+    response.sendFile(path.join(__dirname + '/html/login.html'));
 });
 
-app.listen(3001, function() {
-	console.log('Listening on port ' + 3001 + '.');
+app.post('/auth', function(request, response) {
+	let username = request.body.username;
+	let password = request.body.password;
+	if (username && password) {
+		db.get('SELECT * FROM accounts WHERE username = \'' + username + '\' AND password = \'' + password + '\';', function(err, results) {
+			if (err)
+				console.log(err);
+			if (results) {
+				request.session.loggedin = true;
+				request.session.username = username;
+				response.redirect('/home');
+			} else {
+				response.send('Incorrect Username and/or Password!');
+			}
+			response.end();
+		});
+	} else {
+		response.send('Please enter Username and Password!');
+		response.end();
+	}
 });
 
+app.get('/home', function(request, response) {
+	if (request.session.loggedin) {
+		response.send('Welcome back, ' + request.session.username + '!');
+	} else {
+		response.send('Please login to view this page!');
+	}
+	response.end();
+});
+
+app.listen(3000);
