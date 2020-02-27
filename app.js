@@ -45,6 +45,10 @@ function generateKey() {
 	});
 }
 
+function successfulLogin(username){
+	setUserKey(username);
+}
+
 app.get('/', function(req, res) {
 	
 	res.render("login", {ip: req.query.ip});
@@ -61,7 +65,7 @@ app.post('/auth', function(req, res) {
 			if (err)
 				console.log(err);
 			if (results) {
-				setUserKey(username)
+				successfulLogin(username)
 				db.get('SELECT * FROM accounts WHERE username = \'' + username + '\' ;', function(err, results){
 					res.redirect(url.format({
 					pathname: ip,
