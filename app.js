@@ -70,7 +70,7 @@ app.post('/auth', function(req, res) {
 					res.redirect(url.format({
 					pathname: ip,
 					query: {
-						key: results['key']
+						key: results.key
 					}
 					
 				}));
