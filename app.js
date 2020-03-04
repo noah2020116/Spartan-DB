@@ -26,6 +26,7 @@ app.use(session({
 app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
 
+// Generates a random string to be used as a key
 function generateKey() {
 	let result           = '';
 	let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -36,6 +37,7 @@ function generateKey() {
 	return result;
  }
 
+// Sets the randomly generated key to the users key in the db
  function setUserKey(username){
 
 	db.run('UPDATE accounts SET key = ? WHERE username = ?', [generateKey(), username], function(err) {
@@ -45,8 +47,9 @@ function generateKey() {
 	});
 }
 
+// Sets the key expiration for the user to one month in the future in the database
 function setKeyExpiration(username){
-	
+
 	let expiration = Math.round((new Date()).getTime() / 1000) + 2592000;
 
 	db.run('UPDATE accounts SET expire = ? WHERE username = ?', [expiration, username], function(err) {
@@ -56,17 +59,20 @@ function setKeyExpiration(username){
 		});
 }
 
+// runs when a user successfully logs in
 function successfulLogin(username){
 	setUserKey(username);
 	setKeyExpiration(username);
 }
 
+// renders the login page
 app.get('/', function(req, res) {
 	
 	res.render("login", {ip: req.query.ip});
 
 });
 
+// runs when a user tries to login
 app.post('/auth', function(req, res) {
 	let username = req.body.username;
 	let password = req.body.password;
