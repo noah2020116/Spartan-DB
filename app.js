@@ -11,7 +11,7 @@ let db = new sqlite3.Database('db/database.db');
 let app = express();
  
 // sets pug as the default engine for website
-app.set('view engine', 'pug')
+app.set('view engine', 'pug');
 
 // sets the folder for pugs templates
 app.set("views", path.join(__dirname, "views"));
@@ -45,8 +45,20 @@ function generateKey() {
 	});
 }
 
+function setKeyExpiration(username){
+	
+	let expiration = Math.round((new Date()).getTime() / 1000) + 2592000;
+
+	db.run('UPDATE accounts SET expire = ? WHERE username = ?', [expiration, username], function(err) {
+		if (err) {
+			return console.error(err.message);
+			}
+		});
+}
+
 function successfulLogin(username){
 	setUserKey(username);
+	setKeyExpiration(username);
 }
 
 app.get('/', function(req, res) {
@@ -65,7 +77,7 @@ app.post('/auth', function(req, res) {
 			if (err)
 				console.log(err);
 			if (results) {
-				successfulLogin(username)
+				successfulLogin(username);
 				db.get('SELECT * FROM accounts WHERE username = \'' + username + '\' ;', function(err, results){
 					res.redirect(url.format({
 					pathname: ip,
@@ -91,4 +103,4 @@ app.post('/auth', function(req, res) {
 
 app.listen(3000);
 
-console.log("Server starting on port 3000")
+console.log("Server starting on port 3000");
