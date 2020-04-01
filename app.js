@@ -108,7 +108,7 @@ app.post('/auth', function (req, res) {
 							key: results.key
 						}
 
-					}));l
+					}));
 					res.end();
 				});
 
@@ -141,6 +141,6 @@ app.get('/api/v1/tutorials/:key', (req, res) => {
 					}});
 			});
 
-		app.listen(PORT, () => {
-			console.log(`server running on port ${PORT}`)
-		});
+app.listen(PORT, () => {
+	console.log(`server running on port ${PORT}`)
+});
